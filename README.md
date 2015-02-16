@@ -7,7 +7,8 @@ Invoke scroll.js via the createSVGReference function. It takes two parameters: t
 a configuration object.
 
 
-```
+```js
+
 var elementToTween = createSVGReference('.element-class', {
 
    init: {x: 0, y: 200, opacity: 0},
