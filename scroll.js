@@ -10,13 +10,15 @@ var scrollJS = (function(){
 			_options : _.assign({
 			visible: false,
 			isTweened: false,
-			duration: 0.5,
-			scrollDirection: null,
+			isTweenable: true,
+			duration: 0.016,
 			scrollBegin: 0,
-			scrollEnd: 0
+			scrollEnd: 0,
+			persist: true
+
 			}, options),
 
-			intermediateTween : {},
+			intermediateTween : {}
 
 		};
 
@@ -88,15 +90,16 @@ var tweenIt = function(){
 
 	_.forEach(tweenElements, function(tweenElement){
 
-		if(window.pageYOffset < 0)
+		if(window.pageYOffset < 0 && tweenElement._options.isTweenable)
 			TweenMax.to(tweenElement.elem, 0.016, tweenElement._initialTween);
 
 
 		if(window.pageYOffset > tweenElement._options.scrollEnd){
 			TweenMax.to(tweenElement.elem, 0.016, tweenElement._options.scrollEndState);
+			if(!tweenElement._options.persist) tweenElement._options.isTweenable = false;
 		}
 
-		if(window.pageYOffset <= tweenElement._options.scrollEnd && window.pageYOffset >= tweenElement._options.scrollBegin && window.pageYOffset > 0){
+		if(window.pageYOffset <= tweenElement._options.scrollEnd && window.pageYOffset >= tweenElement._options.scrollBegin && window.pageYOffset > 0 && tweenElement._options.isTweenable){
 
 
 			if(tweenElement._options.isTweened){
