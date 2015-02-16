@@ -1,82 +1,99 @@
-//Created by Brandon Dail
 
-'use strict';
-
-var svgElements = [];
+var scrollJS = (function(){
 
 
-var createSVGReference = function(selector, options){
-
-	//container object
-	var svg = {};
-	if(document.querySelector) svg.elem   = document.querySelector(selector);
-	else return false; //fuck browsers that don't have querySelector
-
-	//general options
-	svg._options = _.assign({
-
-		visible: false,
-		isTweened: false,
-		duration: 0.5,
-		scrollDirection: null,
-		scrollBegin: 0,
-		scrollEnd: 0
-
-	}, options);
-
-	//TODO add option for appearance type (fade, scroll, spin, etc);
-
-	svg.intermediateTween = {};
 
 
-	if(options.init){
-		svg._initialTween = options.init;
-		TweenLite.to(svg.elem, svg._options.duration, _.assign(options.init));
-	}
+	svgElements = [];
+
+	//return function
+	return function(selector, options){
+
+		//container object
+		var svg = {};
+		if(document.querySelector) svg.elem   = document.querySelector(selector);
+		else return false; //fuck browsers that don't have querySelector
+
+		//general options
+		svg._options = _.assign({
+
+			visible: false,
+			isTweened: false,
+			duration: 0.5,
+			scrollDirection: null,
+			scrollBegin: 0,
+			scrollEnd: 0
+
+		}, options);
+
+		//TODO add option for appearance type (fade, scroll, spin, etc);
+
+		svg.intermediateTween = {};
 
 
-	//TODO allow for object prop to be excluded and assumed to have remained the same
-	var tweenFunc = function(){
 
-		var tweenModel = {};
-
-
-		//TODO Abstract this out so we can use it here and when we find the differences onscroll
-		//Compare and find the differences between the start and end states
-		_.forEach(svg._options.scrollEndState, function(value, key){
+		//TODO parse numeric values from css-specifc attribitues, i.e., 100 from 'border-radius: 100%'
+		if(options.init){
+			svg._initialTween = options.init;
+			TweenLite.to(svg.elem, svg._options.duration, _.assign(options.init));
+		}
 
 
-			if(options.init[key] ){
+		//TODO allow for object prop to be excluded and assumed to have remained the same
+		var tweenFunc = function(){
+
+			var tweenModel = {};
 
 
-				tweenModel[key] = options.init.css && options.init.css[key] ?  value - options.init.css[key] : value - options.init[key];
-			}
-
-			else {
-				tweenModel[key] = value;
-			}
-		});
-
-		var totalTraversal = svg._options.scrollEnd - svg._options.scrollBegin;
-
-		var tween = {};
-		_.forEach(tweenModel, function(value, key){
-
-			tween[key] = value / totalTraversal;
-
-		});
-
-		return tween;
+			//TODO Abstract this out so we can use it here and when we find the differences onscroll
+			//Compare and find the differences between the start and end states
+			_.forEach(svg._options.scrollEndState, function(value, key){
 
 
+				if(options.init[key] ){
+
+
+					tweenModel[key] = options.init.css && options.init.css[key] ?  value - options.init.css[key] : value - options.init[key];
+				}
+
+				else {
+					tweenModel[key] = value;
+				}
+			});
+
+			console.log('tweenModel', tweenModel);
+
+			var totalTraversal = svg._options.scrollEnd - svg._options.scrollBegin;
+			console.log('totalTraversal', totalTraversal);
+			var tween = {};
+			_.forEach(tweenModel, function(value, key){
+
+				tween[key] = value / totalTraversal;
+
+			});
+			console.log('tween', tween);
+			return tween;
+
+
+
+		};
+
+		svg.tween = tweenFunc();
+
+		//add the svg element to the svgElements list
+		svgElements.push(svg);
+		return svg;
 	};
 
-	svg.tween = tweenFunc();
 
-	//add the svg element to the svgElements list
-	svgElements.push(svg);
-	return svg;
-};
+})();
+
+
+
+var svgElements = [];
+'use strict';
+
+
 
 
 //TODO this needs to be local to each SVG
@@ -86,26 +103,44 @@ var createSVGReference = function(selector, options){
 var tweenIt = function(){
 
 
+	//console.log('tweenIt invoked');
 
 	_.forEach(svgElements, function(svg){
 
-
 		if(window.pageYOffset < 0)
-			TweenLite.to(svg.elem, 0.016, svg._initialTween);
+			TweenMax.to(svg.elem, 0.016, svg._initialTween);
+
 
 		if(window.pageYOffset > svg._options.scrollEnd){
-			TweenLite.to(svg.elem, 0.016, svg._options.scrollEndState);
+			TweenMax.to(svg.elem, 0.016, svg._options.scrollEndState);
 		}
 
 		if(window.pageYOffset <= svg._options.scrollEnd && window.pageYOffset >= svg._options.scrollBegin && window.pageYOffset > 0){
 
-
+			//console.log('Should be tweening!');
 
 			if(svg._options.isTweened){
 
-				//TODO this math is all fucked, see the bottom notes.
-				_.forEach(svg._initialTween.css, function(value, key){
-					svg.intermediateTween.css[key] = svg._initialTween.css[key] + (svg.tween[key] * window.pageYOffset)
+				//TODO make function so it can be called recursively
+
+				_.forEach(svg._initialTween, function(value, key){
+
+					if ( key === 'css' ) {
+
+						_.forEach(svg._initialTween[key], function(value, key){
+							svg.intermediateTween.css[key] = value + (svg.tween[key] * window.pageYOffset)
+						})
+
+					}
+
+					else {
+
+						svg.intermediateTween[key] = svg._initialTween[key] + (svg.tween[key] * window.pageYOffset)
+						//console.log(key, value);
+
+					}
+
+
 
 				})
 
@@ -117,7 +152,8 @@ var tweenIt = function(){
 				svg._options.isTweened = true;
 			}
 
-			TweenLite.to(svg.elem, 0.016, svg.intermediateTween);
+			//console.log(svg.intermediateTween);
+			TweenMax.to(svg.elem, 0.016, svg.intermediateTween);
 
 
 		}
