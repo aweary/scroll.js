@@ -32,7 +32,6 @@ var scrollJS = (function(){
 
 
 
-		//TODO parse numeric values from css-specifc attribitues, i.e., 100 from 'border-radius: 100%'
 		if(options.init){
 			svg._initialTween = options.init;
 			TweenLite.to(svg.elem, svg._options.duration, _.assign(options.init));
@@ -96,9 +95,10 @@ var svgElements = [];
 
 
 
-//TODO this needs to be local to each SVG
 
 //TODO fix tweenFunc so it caches the css properties for us earlier.
+
+//TODO fix bug with start positions greater than 0. Need to subtract pageoffset from start
 
 var tweenIt = function(){
 
@@ -128,7 +128,7 @@ var tweenIt = function(){
 					if ( key === 'css' ) {
 
 						_.forEach(svg._initialTween[key], function(value, key){
-							svg.intermediateTween.css[key] = value + (svg.tween[key] * window.pageYOffset)
+							svg.intermediateTween.css[key] = value + (svg.tween[key] * (window.pageYOffset - svg._options.scrollBegin))
 						})
 
 					}
