@@ -8,7 +8,7 @@ a configuration object.
 
 
 ```js
-var elementToTween = createSVGReference(selector, options)
+var elementToTween = scrollJS(selector, options)
 ```
 
 `selector` is a CSS3 selector and uses `querySelector` to find the corresponding DOM element.
