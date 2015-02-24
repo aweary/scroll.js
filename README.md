@@ -22,6 +22,9 @@ Example:
    `at` is the only method scrollJS uses. It takes the scroll position (`pageYOffset`) and the scroll state (an object with properties to tween).
     At the moment the first `at` call should set the state at scroll position 0. You can chain as many scroll states together as you'd like.
 
+   This potential real-world example would set your logo to -400 on the x-axis, and the opacity to 0. Scrolling from 0 to 100 would fade and slide
+                                                                                                                                                     the logo over to x: 0, while also moving it 200 up the y-axis.
+
     ```js
      var logo = scrollJS('.logo');
          logo.at(0, {x: -400, y: 0,  opacity: 0});
@@ -29,5 +32,3 @@ Example:
 
     ```
 
-    This potential real-world example would set your logo to -400 on the x-axis, and the opacity to 0. Scrolling from 0 to 100 would fade and slide
-    the logo over to x: 0, while also moving it 200 up the y-axis.
