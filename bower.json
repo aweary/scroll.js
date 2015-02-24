@@ -1,0 +1,32 @@
+{
+  "name": "scroll.js",
+  "main": "scroll.js",
+  "version": "0.1.2",
+  "homepage": "https://github.com/Aweary/scroll.js",
+  "authors": [
+    "Brandon Dail <Kierkegaurd@gmail.com>"
+  ],
+  "description": "A GSAP library for handling scroll-based animations",
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "scroll",
+    "GSAP"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "scroll-dev.js"
+  ],
+  "dependencies": {
+    "lodash": "~3.2.0",
+    "gsap": "~1.15.1"
+  }
+}
