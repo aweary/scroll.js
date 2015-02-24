@@ -1,196 +1,224 @@
 
+
 var scrollJS = (function(){
 
-	tweenElements = [];
 
-	return function(selector, options){
+	var scrollElements        = [],
+		tweenableElements     = [],
 
-		var tweenElement = {
+		tweenElementPrototype = {
 
-			_options : _.assign({
-			visible: false,
-			isTweened: false,
-			isTweenable: true,
-			duration: 0.016,
-			scrollBegin: 0,
-			scrollEnd: 0,
-			persist: true
 
-			}, options),
+			//Default options
 
-			intermediateTween : {}
+			_options: {
+				visible: true,
+				isTweened: false,
+				isTweenable: true,
+				duration: 0.016,
+				scrollBegin: 0,
+				persist: true
+			},
+
+
+			// Used to set tween positions
+
+			at : function(scrollPosition, scrollState){
+
+				if(typeof scrollPosition !== "number" || scrollPosition < 0) throw new Error('Scroll position must be a number greater than 0');
+				if(this._tweenPositionDefined(scrollPosition)) throw new Error('Scroll position already defined for this element');
+				if(Object.keys(scrollState).length === 0){ throw new Error('Scroll state must have at least one value')  };
+
+				var breakpoint = {};
+				for(value in scrollState){
+					if(scrollState.hasOwnProperty(value)){
+						breakpoint[value] = scrollState[value];
+					}
+				}
+
+				breakpoint['scrollPosition'] = scrollPosition;
+
+				this.tweenBreakpoints.push(breakpoint);
+
+				this._updateTweens();
+			},
+
+
+			// Used in _updateTweens to ensure that the tweenBreakpoint elements are in order
+
+			_sortCompareFunction : function(first, second){
+				if(first.scrollPosition < second.scrollPosition) return -1;
+				if(first.scrollPosition > second.scrollPosition) return 1;
+				return 0;
+
+			},
+
+
+			_updateTweens : function(){
+
+
+				// Sort the breakpoints so we have them in order
+				this.tweenBreakpoints = this.tweenBreakpoints.sort(this._sortCompareFunction);
+
+				for(var i = 0; i < this.tweenBreakpoints.length; i++){
+
+					if(this.tweenBreakpoints[i + 1]){
+
+						this._calculateTweenIncrement(this.tweenBreakpoints[i], this.tweenBreakpoints[i + 1])
+					}
+				}
+			},
+
+
+			_calculateTweenIncrement : function(firstTween, secondTween){
+
+
+
+				var totalTraversal = secondTween.scrollPosition - firstTween.scrollPosition;
+
+				// We always store the increment values on the first object
+				if(!firstTween.increment) firstTween.increment = {};
+
+
+				//TODO if value is in secondTween but not in firstTween, set value to 0 for firstTween
+				for(var value in secondTween){
+
+					if(secondTween.hasOwnProperty(value) && value !== 'increment'){
+						firstTween.increment[value] = (secondTween[value] - firstTween[value]) / totalTraversal;
+					}
+
+				}
+
+
+			},
+
+
+			_getActiveTweenPair: function(){
+
+				var offset = window.pageYOffset;
+				var breakpoints = this.tweenBreakpoints.map(function(value){ return value.scrollPosition });
+				for(var i = 0; i < breakpoints.length; i++){
+					if((offset > breakpoints[1] || breakpoints[i] === 0) && offset < breakpoints[i + 1]){
+						this._activeTweenPair.splice(0);
+						this._activeTweenPair.push(this.tweenBreakpoints[i], this.tweenBreakpoints[i+1]);
+						return;
+					}
+				}
+
+
+			},
+
+
+			_animateTweens : function(){
+
+
+
+				this._getActiveTweenPair();
+
+				if(window.pageYOffset <= this._activeTweenPair[1].scrollPosition && window.pageYOffset >= 0){
+
+					var tweenState = {};
+
+					for(var value in this._activeTweenPair[1]){
+						if(this._activeTweenPair[1].hasOwnProperty(value) && value !== 'scrollPosition' && value !== 'increment'){
+							tweenState[value] = this._activeTweenPair[0][value] + (this._activeTweenPair[0].increment[value] * ( window.pageYOffset  - this._activeTweenPair[0].scrollPosition));
+						}
+					}
+					TweenLite.to(this.elem, 0.016, tweenState);
+
+				}
+
+			},
+
+
+
+			// Checks to be sure that we haven't already defined a state for the position
+			// TODO add option for tweenElement to overwrite previous tweenState if desired
+			_tweenPositionDefined  : function(scrollPosition){
+
+				for(var i = 0; i < this.tweenBreakpoints.length; i++){
+					var currentTween = this.tweenBreakpoints[i];
+					if(currentTween[scrollPosition] !== undefined) return true;
+				}
+
+				return false;
+			},
+
+
+			// Checks that there is a tween pair to calculate values between,
+			// then submits them to be calculate
+
+
+
+
+			_getTweenBreakpoints : function(){
+				return this.tweenBreakpoints;
+			}
+
 
 		};
 
-		if(document.querySelector) tweenElement.elem  = document.querySelector(selector);
-		else return false;
-
-		//TODO add option for appearance type (fade, scroll, spin, etc);
-
-			tweenElement._initialTween = options.init;
-			TweenLite.to(tweenElement.elem, tweenElement._options.duration, _.assign(options.init));
-
-		//TODO allow for object prop to be excluded and assumed to have remained the same
-		var tweenFunc = function(){
-
-			var tweenModel = {};
-
-
-			//TODO Abstract this out so we can use it here and when we find the differences onscroll
-			//Compare and find the differences between the start and end states
-			_.forEach(tweenElement._options.scrollEndState, function(value, key){
-
-
-				if(options.init[key] ){
-
-
-					tweenModel[key] = options.init.css && options.init.css[key] ?  value - options.init.css[key] : value - options.init[key];
-				}
-
-				else {
-					tweenModel[key] = value;
-				}
-			});
-
-			console.log('tweenModel', tweenModel);
-
-			var totalTraversal = tweenElement._options.scrollEnd - tweenElement._options.scrollBegin;
-
-			var tween = {};
-
-			_.forEach(tweenModel, function(value, key){
-
-				tween[key] = value / totalTraversal;
-
-			});
-			console.log('tween', tween);
-			return tween;
 
 
 
-		};
+	var scrollObject  =  function(selector, options) {
 
-		tweenElement.tween = tweenFunc();
 
-		tweenElements.push(tweenElement);
+		var tweenElement = Object.create(tweenElementPrototype);
+
+		// DOM element being Tween'd
+		tweenElement.elem = document.querySelector ? document.querySelector(selector) : false;
+		if(!tweenElement.elem){ throw new Error('CSS  Selector invalid or querySelector() not supported in your browser')};
+
+		tweenElement.tweenBreakpoints = [];
+
+
+		if(options) tweenElement._options = _.assign(this._options, options);
+		//General options for controlling states.
+
+
+		// Object holding tween values between steps
+		tweenElement.intermediateTween = {};
+		tweenElement._activeTweenPair = [];
+
+		scrollElements.push(tweenElement);
+		tweenElement.rate = 6;
+
+
+
 		return tweenElement;
 	};
+
+
+
+	scrollObject._getScrollElements        = function(){  return scrollElements           };
+	scrollObject._getTweenableElements     = function(){  return tweenableElements        };
+
+
+
+	// ONE EVENT LISTENER TO RULE THEM ALL!
+
+	window.addEventListener('scroll', function(){
+		for(var i = 0; i < scrollElements.length; i++){
+			scrollElements[i]._animateTweens.apply(scrollElements[i]);
+		}
+	});
+
+	return scrollObject;
 
 
 })();
 
 
-
-//TODO fix tweenFunc so it caches the css properties for us earlier.
-//TODO add option for persistAfterFirstCycle, so users can choose whether its retriggered
-
-
-var tweenIt = function(){
-
-
-	_.forEach(tweenElements, function(tweenElement){
-
-		if(window.pageYOffset < 0 && tweenElement._options.isTweenable)
-			TweenMax.to(tweenElement.elem, 0.016, tweenElement._initialTween);
-
-
-		if(window.pageYOffset > tweenElement._options.scrollEnd){
-			TweenMax.to(tweenElement.elem, 0.016, tweenElement._options.scrollEndState);
-			if(!tweenElement._options.persist) tweenElement._options.isTweenable = false;
-		}
-
-		if(window.pageYOffset <= tweenElement._options.scrollEnd && window.pageYOffset >= tweenElement._options.scrollBegin && window.pageYOffset > 0 && tweenElement._options.isTweenable){
-
-
-			if(tweenElement._options.isTweened){
-
-				//TODO make function so it can be called recursively
-
-				_.forEach(tweenElement._initialTween, function(value, key){
-
-					if ( key === 'css' ) {
-
-						_.forEach(tweenElement._initialTween[key], function(value, key){
-							tweenElement.intermediateTween.css[key] = value + (tweenElement.tween[key] * (window.pageYOffset - tweenElement._options.scrollBegin))
-						})
-
-					}
-
-					else {
-
-						tweenElement.intermediateTween[key] = tweenElement._initialTween[key] + (tweenElement.tween[key] * window.pageYOffset)
-						//console.log(key, value);
-
-					}
-
-
-
-				})
-
-
-			}
-
-			//otherwise lets initiate the tween;
-			else {
-				tweenElement._options.isTweened = true;
-			}
-
-			TweenMax.to(tweenElement.elem, 0.016, tweenElement.intermediateTween);
-
-
-		}
-
-	});
-
-}
-
-
-//TODO add option for media-query like conditional animations
-//TODO add option to use css classes to declare start and end states
-
-
-
-
-window.addEventListener('scroll', function(){
-
-	window.requestAnimationFrame(tweenIt);
-
-}, false);
-
-
-window.addEventListener('load', tweenIt, false);
-
-
-
-
-
-
-
-
-
-
 /*
 
-Potential new syntax:
 
-// have scrollJS return an object with the methods:
-//    at() - Sets the Tween state at that pageYOffset value
-
-
-var tweenElement = ScrollJS('.element-class', {
-     init: {x: 0, y: 0, opacity: 0.5}
-});
-
-	tweenElement.at(300, { x: 200, y: 300, opacity: 1 })
-	tweenElement.at(500, {x: 0, y: 0, opacity: 0}
+ Need function that decides which tweenBreakpoint is active. Should be easy enough to
+ use the tweenBreakpoint array since it will always be ordered from least to greatest
 
 
-OR, if I can get media queries down:
-
-	tweenElement.at(300, {
-		"700px": {x: 0, y: 100, opacity: 0  }
-		"1280px" : { x: 100, y: 95, opacity: 1}
-	})
 
  */
+
+
 
