@@ -27,6 +27,6 @@ Example:
 ```js
  var logo = scrollJS('.logo');
  logo.at(0, {x: -400, y: 0,  opacity: 0});
- ogo.at(100, {x: 0, y: 200, opacity: 1});
+ logo.at(100, {x: 0, y: 200, opacity: 1});
 ```
 
