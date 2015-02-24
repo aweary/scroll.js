@@ -6,10 +6,17 @@ scroll.js is a small utility that allows you to Tween animations between scroll 
 Create a scrollJS object using the `scrollJS` function.
 
 ```js
-var elementToTween = scrollJS(selector);
+var elementToTween = scrollJS(selector, options);
 ```
 
 `selector` is a CSS3 selector and uses `querySelector` to find the corresponding DOM element.
+`options` is an optional object containing overrides for the default configuration options. The
+settings available are:
+
+##### `persist`
+Default is set to true. If false, the animation will only complete one cycle. After the window
+has been scroll to or past the largest offset value provided the element is removed from
+the list of  tween objects and will no longer be queried in anyway.
 
 
 #Documentation

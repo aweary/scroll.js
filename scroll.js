@@ -15,7 +15,7 @@ var scrollJS = (function(){
 				visible: true,
 				isTweened: false,
 				isTweenable: true,
-				persist: true,
+				persist: false,
 				tweenBoundriesSet: false
 
 			},
@@ -157,6 +157,11 @@ var scrollJS = (function(){
 					TweenLite.to(this.elem, 0.016, this.zeroTween);
 				}
 
+				if(window.pageYOffset > 700  && !this._options.persist){
+					console.log('HEHEH')
+					this._dereferenceNullElement();
+				}
+
 			},
 
 
@@ -173,9 +178,10 @@ var scrollJS = (function(){
 				return false;
 			},
 
-
-			// Checks that there is a tween pair to calculate values between,
-			// then submits them to be calculate
+			_dereferenceNullElement : function(){
+				scrollElements.splice(scrollElements.indexOf(this), 1);
+				console.log('Removed reference');
+			},
 
 
 
