@@ -3,51 +3,31 @@ scroll.js is a small utility that allows you to Tween animations between scroll 
 
 # Usage
 
-Invoke scroll.js via the createSVGReference function. It takes two parameters: the CSS3 identifier for the DOM element, and
-a configuration object.
-
+Create a scrollJS object using the `scrollJS` function.
 
 ```js
-var elementToTween = scrollJS(selector, options)
+var elementToTween = scrollJS(selector);
 ```
 
 `selector` is a CSS3 selector and uses `querySelector` to find the corresponding DOM element.
-`options` is an object containing the parameters for initializing your scrollJS object. The parameters are as follows:
 
 
 #Documentation
 
-### `init`
+### `at`
 Example:
-`init: {x: 0, y: 200, opacity: 1}`
+`elementToTween.at(scrollPosition, scrollState);`
 
 ###### Description:
-   `init` is the initialization object. It will Tween the element to the specified location on load.
-   The parameters can be any parameters Tweenable by GSAP's TweenMax utility.
+   `at` is the only method scrollJS uses. It takes the scroll position (`pageYOffset`) and the scroll state (an object with properties to tween).
+    At the moment the first `at` call should set the state at scroll position 0. You can chain as many scroll states together as you'd like.
 
+    ```js
+     var logo = scrollJS('.logo');
+         logo.at(0, {x: -400, y: 0,  opacity: 0});
+         logo.at(100, {x: 0, y: 200, opacity: 1});
 
-### `scrollBegin`
-Example:
-`scrollBegin: 0`
+    ```
 
-###### Description:
-   `scrollBegin` specifies the `pageYOffset` value at which you'd like the animation to begin
-
-
-### `scrollEnd`
-Example:
-`scrollEnd: 200`
-
-###### Description:
- `scrollEnd` specifies the `pageYOffset` value at which you'd like the animation to end.
-
-
-
-### `persist`
-Example:
-`persist: false`
-
-###### Description:
- Boolean value which sets whether you'd like the animation to persist after its completed a full cycle.
- If set to false (defaults to true) the animation will not trigger on subsequent up/down scrolls after completing once.
-
+    This potential real-world example would set your logo to -400 on the x-axis, and the opacity to 0. Scrolling from 0 to 100 would fade and slide
+    the logo over to x: 0, while also moving it 200 up the y-axis.
