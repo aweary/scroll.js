@@ -16,7 +16,7 @@ var scrollJS = (function(){
 				isTweened: false,
 				isTweenable: true,
 				persist: false,
-				tweenBoundriesSet: false
+				tweenBoundariesSet: false
 
 			},
 
@@ -131,22 +131,25 @@ var scrollJS = (function(){
 					for(var value in this._activeTweenPair[1]){
 
 						if(this._activeTweenPair[1].hasOwnProperty(value) && value !== 'scrollPosition' && value !== 'increment'){
-							if(!this._options.tweenBoundriesSet){
-								this._options.tweenBoundriesSet = true;
-								this.zeroTween[value] = this.tweenBreakpoints[0][value];
-								this.finalTween[value] = this.tweenBreakpoints[1][value];
+
+
+							if(!this._options.tweenBoundariesSet){
+								this.zeroTween[value] =  this.tweenBreakpoints[0][value];
+								this.finalTween[value] = this.tweenBreakpoints[this.tweenBreakpoints.length -1][value];
 							}
 
 							tweenState[value] = this._activeTweenPair[0][value] + (this._activeTweenPair[0].increment[value] * ( window.pageYOffset  - this._activeTweenPair[0].scrollPosition));
 						}
 					}
 
+					this._options.tweenBoundariesSet = true;
+
 
 					TweenLite.to(this.elem, 0.016, tweenState);
 
 				}
 
-				if(window.pageYOffset > this._activeTweenPair[1].scrollPosition && this._options.isTweenable){
+				if(window.pageYOffset >=  this.tweenBreakpoints[this.tweenBreakpoints.length -1].scrollPosition && this._options.isTweenable){
 					this._options.isTweenable = false;
 					TweenLite.to(this.elem, 0.016, this.finalTween);
 
@@ -157,8 +160,7 @@ var scrollJS = (function(){
 					TweenLite.to(this.elem, 0.016, this.zeroTween);
 				}
 
-				if(window.pageYOffset > 700  && !this._options.persist){
-					console.log('HEHEH')
+				if(window.pageYOffset >= this.tweenBreakpoints[this.tweenBreakpoints.length - 1].scrollPosition && !this._options.persist){
 					this._dereferenceNullElement();
 				}
 
@@ -179,6 +181,7 @@ var scrollJS = (function(){
 			},
 
 			_dereferenceNullElement : function(){
+				TweenLite.to(this.elem, 0.016, this.finalTween);
 				scrollElements.splice(scrollElements.indexOf(this), 1);
 				console.log('Removed reference');
 			},
@@ -209,7 +212,7 @@ var scrollJS = (function(){
 
 
 		//TODO remove last lodash dependency
-		if(options) tweenElement._options = _.assign(this._options, options);
+		if(options) tweenElement._options =  options;
 		//General options for controlling states.
 
 
