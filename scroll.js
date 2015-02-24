@@ -15,9 +15,9 @@ var scrollJS = (function(){
 				visible: true,
 				isTweened: false,
 				isTweenable: true,
-				duration: 0.016,
-				scrollBegin: 0,
-				persist: true
+				persist: true,
+				tweenBoundriesSet: false
+
 			},
 
 
@@ -59,6 +59,13 @@ var scrollJS = (function(){
 
 				// Sort the breakpoints so we have them in order
 				this.tweenBreakpoints = this.tweenBreakpoints.sort(this._sortCompareFunction);
+
+				for(var value in this.tweenBreakpoints[0]){
+					if(this.tweenBreakpoints[0].hasOwnProperty(value) && value !== 'increment' && value !== 'scrollPosition'){
+						this.zeroTween[value] = this.tweenBreakpoints[0][value];
+					}
+
+				}
 
 				for(var i = 0; i < this.tweenBreakpoints.length; i++){
 
@@ -115,17 +122,39 @@ var scrollJS = (function(){
 
 				this._getActiveTweenPair();
 
+
 				if(window.pageYOffset <= this._activeTweenPair[1].scrollPosition && window.pageYOffset >= 0){
+					this._options.isTweenable = true;
 
 					var tweenState = {};
 
 					for(var value in this._activeTweenPair[1]){
+
 						if(this._activeTweenPair[1].hasOwnProperty(value) && value !== 'scrollPosition' && value !== 'increment'){
+							if(!this._options.tweenBoundriesSet){
+								this._options.tweenBoundriesSet = true;
+								this.zeroTween[value] = this.tweenBreakpoints[0][value];
+								this.finalTween[value] = this.tweenBreakpoints[1][value];
+							}
+
 							tweenState[value] = this._activeTweenPair[0][value] + (this._activeTweenPair[0].increment[value] * ( window.pageYOffset  - this._activeTweenPair[0].scrollPosition));
 						}
 					}
+
+
 					TweenLite.to(this.elem, 0.016, tweenState);
 
+				}
+
+				if(window.pageYOffset > this._activeTweenPair[1].scrollPosition && this._options.isTweenable){
+					this._options.isTweenable = false;
+					TweenLite.to(this.elem, 0.016, this.finalTween);
+
+				}
+
+				if(window.pageYOffset < 0 && this._options.isTweenable){
+					this._options.isTweenable = false;
+					TweenLite.to(this.elem, 0.016, this.zeroTween);
 				}
 
 			},
@@ -173,12 +202,14 @@ var scrollJS = (function(){
 		tweenElement.tweenBreakpoints = [];
 
 
+		//TODO remove last lodash dependency
 		if(options) tweenElement._options = _.assign(this._options, options);
 		//General options for controlling states.
 
 
 		// Object holding tween values between steps
-		tweenElement.intermediateTween = {};
+		tweenElement.zeroTween   = {};
+		tweenElement.finalTween  = {};
 		tweenElement._activeTweenPair = [];
 
 		scrollElements.push(tweenElement);
@@ -203,6 +234,14 @@ var scrollJS = (function(){
 			scrollElements[i]._animateTweens.apply(scrollElements[i]);
 		}
 	});
+
+
+	var initalParse = window.addEventListener('DOMContentLoaded', function(){
+		for(var i = 0; i < scrollElements.length; i++){
+			scrollElements[i]._animateTweens.apply(scrollElements[i]);
+		}
+	});
+
 
 	return scrollObject;
 
