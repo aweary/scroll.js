@@ -7,11 +7,6 @@
     "Brandon Dail <Kierkegaurd@gmail.com>"
   ],
   "description": "A GSAP library for handling scroll-based animations",
-  "moduleType": [
-    "amd",
-    "globals",
-    "node"
-  ],
   "keywords": [
     "scroll",
     "GSAP"
