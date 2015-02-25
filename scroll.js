@@ -10,18 +10,6 @@ var scrollJS = (function(){
 		tweenElementPrototype = {
 
 
-			//Default options
-
-			_options: {
-				visible: true,
-				isTweened: false,
-				isTweenable: true,
-				persist: true,
-				initialTweenPairSet: false
-
-			},
-
-
 			// Used to set tween positions
 
 			at : function(scrollPosition, scrollState){
@@ -121,12 +109,12 @@ var scrollJS = (function(){
 				var breakpoints = this.tweenBreakpoints.map(function(value){ return value.scrollPosition });
 
 
-				if(!this._options.initialTweenPairSet){
+				if(!this.initialTweenPairSet){
 
 					if(breakpoints[breakpoints.length - 1] < offset){
 						this._activeTweenPair.splice(0);
 						this._activeTweenPair.push(this.tweenBreakpoints[breakpoints.length - 2], this.tweenBreakpoints[breakpoints.length - 1]);
-						this._options.initialTweenPairSet = true;git
+						this._initialTweenPairSet = true;
 						return;
 					}
 
@@ -155,7 +143,7 @@ var scrollJS = (function(){
 
 
 				if(window.pageYOffset <= this._activeTweenPair[1].scrollPosition && window.pageYOffset >= 0){
-					this._options.isTweenable = true;
+					this._isTweenable = true;
 
 					var tweenState = {};
 
@@ -179,25 +167,26 @@ var scrollJS = (function(){
 						}
 					}
 
-					this._options.tweenBoundariesSet = true;
+					this._tweenBoundariesSet = true;
 
 
 					TweenLite.to(this.elem, 0.016, tweenState);
 
 				}
 
-				if(window.pageYOffset >=  this.tweenBreakpoints[this.tweenBreakpoints.length -1].scrollPosition && this._options.isTweenable){
-					this._options.isTweenable = false;
+				if(window.pageYOffset >=  this.tweenBreakpoints[this.tweenBreakpoints.length -1].scrollPosition && this._isTweenable){
+					console.log('FINAL TWEENED!');
+					this.isTweenable = false;
 					TweenLite.to(this.elem, 0.016, this._finalTween);
 
 				}
 
-				if(window.pageYOffset < 0 && this._options.isTweenable){
-					this._options.isTweenable = false;
+				if(window.pageYOffset < 0 && this._isTweenable){
+					this._isTweenable = false;
 					TweenLite.to(this.elem, 0.016, this._zeroTween);
 				}
 
-				if(window.pageYOffset >= this.tweenBreakpoints[this.tweenBreakpoints.length - 1].scrollPosition && !this._options.persist){
+				if(window.pageYOffset >= this.tweenBreakpoints[this.tweenBreakpoints.length - 1].scrollPosition && !this._persist){
 					this._dereferenceNullElement();
 				}
 
@@ -264,17 +253,17 @@ var scrollJS = (function(){
 
 		if(options) tweenElement._options =  options;
 
-		tweenElement._zeroTween   = {};
-		tweenElement._finalTween  = {};
-		tweenElement._tweenBoundariesSet =  false,
-		tweenElement._activeTweenPair = [];
+		tweenElement._persist             = true;
+		tweenElement._zeroTween          = {};
+		tweenElement._finalTween         = {};
+		tweenElement._isTweenable        = true;
+		tweenElement.initialTweenPairSet = false;
+		tweenElement._tweenBoundariesSet = false;
+		tweenElement._activeTweenPair    = [];
 
 		scrollElements.push(tweenElement);
-		tweenElement.rate = 6;
-
-
-
 		return tweenElement;
+
 	};
 
 
