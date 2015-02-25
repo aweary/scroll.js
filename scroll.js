@@ -102,6 +102,12 @@ var scrollJS = (function(){
 
 			_getActiveTweenPair: function(){
 
+				console.log('getActiveTweenPair: ', this);
+
+
+				//TODO if the lowest value in the breakpoints is greater than 0, make sure
+				//TODO we're not trying to query its activeTweenPair[1] yet. Lets set it earlier maybe so its not empty?
+
 
 				var offset = window.pageYOffset;
 				if(offset < this.cache.activeTweenPairUpperBound && offset > this.cache.activeTweenPairLowerBound) return;
@@ -137,6 +143,7 @@ var scrollJS = (function(){
 
 			_animateTweens : function(){
 
+				console.log('animateTweens: ', this);
 
 				//TODO gix issue with activeTweenPair not loading when the page is loaded at an offset > 0
 				this._getActiveTweenPair();
@@ -285,8 +292,13 @@ var scrollJS = (function(){
 	var initalParse = window.addEventListener('DOMContentLoaded', function(){
 		for(var i = 0; i < scrollElements.length; i++){
 			scrollElements[i]._getActiveTweenPair.apply(scrollElements[i]);
+		}
+
+		for(var i = 0; i < scrollElements.length; i++){
 			scrollElements[i]._animateTweens.apply(scrollElements[i]);
 		}
+
+
 	});
 
 
