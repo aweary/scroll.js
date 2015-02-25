@@ -102,7 +102,6 @@ var scrollJS = (function(){
 
 			_getActiveTweenPair: function(){
 
-				console.log('getActiveTweenPair: ', this);
 
 
 				//TODO if the lowest value in the breakpoints is greater than 0, make sure
@@ -117,17 +116,26 @@ var scrollJS = (function(){
 
 				if(!this.initialTweenPairSet){
 
-					if(breakpoints[breakpoints.length - 1] < offset){
-						this._activeTweenPair.splice(0);
-						this._activeTweenPair.push(this.tweenBreakpoints[breakpoints.length - 2], this.tweenBreakpoints[breakpoints.length - 1]);
-						this._initialTweenPairSet = true;
-						return;
-					}
+
 
 				}
 
 
 				for(var i = 0; i < breakpoints.length; i++){
+
+					console.log('iterating breakpoints', this);
+
+					// Cases where there is only one set of tween states
+					if(this.tweenBreakpoints.length === 2){
+
+						if(this._activeTweenPair.length) this._activeTweenPair.splice(0);
+						this._activeTweenPair.push(this.tweenBreakpoints[0], this.tweenBreakpoints[1]);
+						this.cache['activeTweenPairUpperBound'] = breakpoints[1];
+						this.cache['activeTweenPairLowerBound'] = breakpoints[0];
+						return;
+					};
+
+
 					if((offset > breakpoints[i] || breakpoints[i] === 0) && offset < breakpoints[i + 1]){
 						this._activeTweenPair.splice(0);
 						this._activeTweenPair.push(this.tweenBreakpoints[i], this.tweenBreakpoints[i+1]);
@@ -143,7 +151,6 @@ var scrollJS = (function(){
 
 			_animateTweens : function(){
 
-				console.log('animateTweens: ', this);
 
 				//TODO gix issue with activeTweenPair not loading when the page is loaded at an offset > 0
 				this._getActiveTweenPair();
