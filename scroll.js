@@ -176,7 +176,7 @@ var scrollJS = (function(){
 
 				if(window.pageYOffset >=  this.tweenBreakpoints[this.tweenBreakpoints.length -1].scrollPosition && this._isTweenable){
 					console.log('FINAL TWEENED!');
-					this.isTweenable = false;
+					this._isTweenable = false;
 					TweenLite.to(this.elem, 0.016, this._finalTween);
 
 				}
