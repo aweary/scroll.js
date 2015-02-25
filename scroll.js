@@ -124,7 +124,9 @@ var scrollJS = (function(){
 				if(!this._options.initialTweenPairSet){
 
 					if(breakpoints[breakpoints.length - 1] < offset){
+						this._activeTweenPair.splice(0);
 						this._activeTweenPair.push(this.tweenBreakpoints[breakpoints.length - 2], this.tweenBreakpoints[breakpoints.length - 1]);
+						this._options.initialTweenPairSet = true;git
 						return;
 					}
 
