@@ -15,7 +15,7 @@ var scrollJS = (function(){
 				visible: true,
 				isTweened: false,
 				isTweenable: true,
-				persist: false,
+				persist: true,
 				tweenBoundariesSet: false
 
 			},
@@ -86,6 +86,13 @@ var scrollJS = (function(){
 				// We always store the increment values on the first object
 				if(!firstTween.increment) firstTween.increment = {};
 
+				for(var type in firstTween){
+					if(firstTween.hasOwnProperty(type) && type !== 'scrollPosition' && type !== 'increment' && secondTween[type] === undefined){
+						console.log(type);
+						secondTween[type] = firstTween[type];
+					}
+
+				}
 
 				//TODO if value is in secondTween but not in firstTween, set value to 0 for firstTween
 				for(var value in secondTween){
@@ -93,6 +100,7 @@ var scrollJS = (function(){
 					if(secondTween.hasOwnProperty(value) && value !== 'increment'){
 						firstTween.increment[value] = (secondTween[value] - firstTween[value]) / totalTraversal;
 					}
+
 
 				}
 
@@ -133,10 +141,13 @@ var scrollJS = (function(){
 						if(this._activeTweenPair[1].hasOwnProperty(value) && value !== 'scrollPosition' && value !== 'increment'){
 
 
+							// Set Tween Boundaries once so we know the lowest and highest scroll values for excess scrolls.
+
 							if(!this._options.tweenBoundariesSet){
 								this.zeroTween[value] =  this.tweenBreakpoints[0][value];
 								this.finalTween[value] = this.tweenBreakpoints[this.tweenBreakpoints.length -1][value];
 							}
+
 
 							tweenState[value] = this._activeTweenPair[0][value] + (this._activeTweenPair[0].increment[value] * ( window.pageYOffset  - this._activeTweenPair[0].scrollPosition));
 						}
@@ -211,7 +222,6 @@ var scrollJS = (function(){
 		tweenElement.tweenBreakpoints = [];
 
 
-		//TODO remove last lodash dependency
 		if(options) tweenElement._options =  options;
 		//General options for controlling states.
 
