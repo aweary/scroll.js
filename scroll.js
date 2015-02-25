@@ -6,6 +6,7 @@ var scrollJS = (function(){
 	var scrollElements        = [],
 		tweenableElements     = [],
 
+
 		tweenElementPrototype = {
 
 
@@ -16,7 +17,7 @@ var scrollJS = (function(){
 				isTweened: false,
 				isTweenable: true,
 				persist: true,
-				tweenBoundariesSet: false
+				initialTweenPairSet: false
 
 			},
 
@@ -60,12 +61,12 @@ var scrollJS = (function(){
 				// Sort the breakpoints so we have them in order
 				this.tweenBreakpoints = this.tweenBreakpoints.sort(this._sortCompareFunction);
 
-				for(var value in this.tweenBreakpoints[0]){
-					if(this.tweenBreakpoints[0].hasOwnProperty(value) && value !== 'increment' && value !== 'scrollPosition'){
-						this.zeroTween[value] = this.tweenBreakpoints[0][value];
-					}
-
-				}
+				//for(var value in this.tweenBreakpoints[0]){
+				//	if(this.tweenBreakpoints[0].hasOwnProperty(value) && value !== 'increment' && value !== 'scrollPosition'){
+				//		this.zeroTween[value] = this.tweenBreakpoints[0][value];
+				//	}
+				//
+				//}
 
 				for(var i = 0; i < this.tweenBreakpoints.length; i++){
 
@@ -108,14 +109,34 @@ var scrollJS = (function(){
 			},
 
 
+			//TODO set a value on the tweenElement that we can check quickly
+			//TODO  so that we know if a new tweenPair is needed
+
 			_getActiveTweenPair: function(){
 
+
 				var offset = window.pageYOffset;
+				if(offset < this.cache.activeTweenPairUpperBound && offset > this.cache.activeTweenPairLowerBound) return;
+
 				var breakpoints = this.tweenBreakpoints.map(function(value){ return value.scrollPosition });
+
+
+				if(!this._options.initialTweenPairSet){
+
+					if(breakpoints[breakpoints.length - 1] < offset){
+						this._activeTweenPair.push(this.tweenBreakpoints[breakpoints.length - 2], this.tweenBreakpoints[breakpoints.length - 1]);
+						return;
+					}
+
+				}
+
+
 				for(var i = 0; i < breakpoints.length; i++){
-					if((offset > breakpoints[1] || breakpoints[i] === 0) && offset < breakpoints[i + 1]){
+					if((offset > breakpoints[i] || breakpoints[i] === 0) && offset < breakpoints[i + 1]){
 						this._activeTweenPair.splice(0);
 						this._activeTweenPair.push(this.tweenBreakpoints[i], this.tweenBreakpoints[i+1]);
+						this.cache['activeTweenPairUpperBound'] = breakpoints[i + 1];
+						this.cache['activeTweenPairLowerBound'] = breakpoints[i];
 						return;
 					}
 				}
@@ -127,7 +148,7 @@ var scrollJS = (function(){
 			_animateTweens : function(){
 
 
-
+				//TODO gix issue with activeTweenPair not loading when the page is loaded at an offset > 0
 				this._getActiveTweenPair();
 
 
@@ -143,9 +164,12 @@ var scrollJS = (function(){
 
 							// Set Tween Boundaries once so we know the lowest and highest scroll values for excess scrolls.
 
-							if(!this._options.tweenBoundariesSet){
-								this.zeroTween[value] =  this.tweenBreakpoints[0][value];
-								this.finalTween[value] = this.tweenBreakpoints[this.tweenBreakpoints.length -1][value];
+							//TODO this is not working
+							if(!this._tweenBoundariesSet){
+								console.log('Invoked for: ', this);
+								this._setTweenBoundaries(this.tweenBreakpoints[this.tweenBreakpoints.length - 1], this._finalTween);
+								this._setTweenBoundaries(this.tweenBreakpoints[0], this._zeroTween);
+								this._tweenBoundariesSet  = true;
 							}
 
 
@@ -162,13 +186,13 @@ var scrollJS = (function(){
 
 				if(window.pageYOffset >=  this.tweenBreakpoints[this.tweenBreakpoints.length -1].scrollPosition && this._options.isTweenable){
 					this._options.isTweenable = false;
-					TweenLite.to(this.elem, 0.016, this.finalTween);
+					TweenLite.to(this.elem, 0.016, this._finalTween);
 
 				}
 
 				if(window.pageYOffset < 0 && this._options.isTweenable){
 					this._options.isTweenable = false;
-					TweenLite.to(this.elem, 0.016, this.zeroTween);
+					TweenLite.to(this.elem, 0.016, this._zeroTween);
 				}
 
 				if(window.pageYOffset >= this.tweenBreakpoints[this.tweenBreakpoints.length - 1].scrollPosition && !this._options.persist){
@@ -176,6 +200,20 @@ var scrollJS = (function(){
 				}
 
 			},
+
+			_setTweenBoundaries : function(src, target){
+
+				for(var value in src){
+
+					if(src.hasOwnProperty(value) && value !== 'increment' && value !== 'scrollPosition'){
+						if(typeof src[value] === 'object') this._setTweenBoundaries(src[value], target[value]);
+						target[value] = src[value];
+					}
+				}
+
+
+
+				},
 
 
 
@@ -220,15 +258,13 @@ var scrollJS = (function(){
 		if(!tweenElement.elem){ throw new Error('CSS  Selector invalid or querySelector() not supported in your browser')};
 
 		tweenElement.tweenBreakpoints = [];
-
+		tweenElement.cache = {};
 
 		if(options) tweenElement._options =  options;
-		//General options for controlling states.
 
-
-		// Object holding tween values between steps
-		tweenElement.zeroTween   = {};
-		tweenElement.finalTween  = {};
+		tweenElement._zeroTween   = {};
+		tweenElement._finalTween  = {};
+		tweenElement._tweenBoundariesSet =  false,
 		tweenElement._activeTweenPair = [];
 
 		scrollElements.push(tweenElement);
@@ -257,6 +293,7 @@ var scrollJS = (function(){
 
 	var initalParse = window.addEventListener('DOMContentLoaded', function(){
 		for(var i = 0; i < scrollElements.length; i++){
+			scrollElements[i]._getActiveTweenPair.apply(scrollElements[i]);
 			scrollElements[i]._animateTweens.apply(scrollElements[i]);
 		}
 	});
