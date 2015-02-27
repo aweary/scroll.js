@@ -10,10 +10,10 @@ Use Bower to install scroll.js.
 
 # Usage
 
-Create a scrollJS object using the `scrollJS` function.
+Create a scrollJS object using the `ScrollJS` function.
 
 ```js
-var elementToTween = scrollJS(selector, options);
+var elementToTween = new ScrollJS(selector, options);
 ```
 
 `selector` is a CSS3 selector and uses `querySelector` to find the corresponding DOM element.
@@ -39,7 +39,7 @@ Example:
    This potential real-world example would set your logo to `-400` on the `x-axis`, and the `opacity` to `0`. Scrolling from 0 to 100 would fade and slide
     the logo over to position `0` on the `x-axis`, while also moving it `200` up the `y-axis`.
 ```js
- var logo = scrollJS('.logo');
+ var logo = new ScrollJS('.logo');
  logo.at(0, {x: -400, y: 0,  opacity: 0});
  logo.at(100, {x: 0, y: 200, opacity: 1});
 ```

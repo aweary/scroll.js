@@ -195,7 +195,7 @@ var scrollJS = (function(){
 
 				}
 
-				if(window.pageYOffset < 0 && this._isTweenable){
+				if(window.pageYOffset < 0 && this._isTweenable ){
 					this._isTweenable = false;
 					TweenLite.to(this.elem, 0.016, this._zeroTween);
 				}
