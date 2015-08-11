@@ -1,4 +1,7 @@
-# scroll.js
+#DEPRECATED
+I don't think any future development will be occuring here. ScrollMagic doesn't require jQuery anymore, so its totally the bee's knees. Don't use this.
+
+# scroll.js 
 scroll.js is a small utility that allows you to Tween animations between scroll states. It utilizes the GSAP animation library and (for the moment) lodash.
 
 
